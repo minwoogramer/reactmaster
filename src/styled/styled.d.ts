@@ -2,10 +2,9 @@ import "styled-components";
 
 declare module "styled-components" {
   export interface DefaultTheme {
-    textColor: string;
+    name: "light" | "dark";
     bgColor: string;
-    boxColor: string;
+    textColor: string;
     accentColor: string;
-    darkColor: string;
   }
 }
