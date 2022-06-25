@@ -1,0 +1,12 @@
+{
+  "files": {
+    "main.js": "/react-coin-tracker/static/js/main.3022b514.js",
+    "static/js/787.67ec8145.chunk.js": "/react-coin-tracker/static/js/787.67ec8145.chunk.js",
+    "index.html": "/react-coin-tracker/index.html",
+    "main.3022b514.js.map": "/react-coin-tracker/static/js/main.3022b514.js.map",
+    "787.67ec8145.chunk.js.map": "/react-coin-tracker/static/js/787.67ec8145.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.3022b514.js"
+  ]
+}
