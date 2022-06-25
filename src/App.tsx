@@ -1,84 +1,96 @@
-import { createGlobalStyle, ThemeProvider } from "styled-components";
-import Router from "./Router";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useEffect, useMemo, useState } from "react";
+import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
+import styled, { ThemeProvider } from "styled-components";
+import Router from "./Router";
+import { Container } from "./styled/Container";
+import GlobalStyle from "./styled/GlobalStyle";
+import { darkTheme, lightTheme } from './styled/theme';
+import { faLightbulb, faMoon } from "@fortawesome/free-solid-svg-icons";
+import { HelmetProvider } from "react-helmet-async";
+import { useLatest } from "react-use";
 import { useRecoilValue } from "recoil";
-import { isDarkAtom } from "./atom";
-import { darkTheme, lightTheme } from "./theme";
 
-const GlobalStyle = createGlobalStyle`
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, menu, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-main, menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  font: inherit;
-  vertical-align: baseline;
-}
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, main, menu, nav, section {
-  display: block;
-}
-/* HTML5 hidden-attribute fix for newer browsers */
-*[hidden] {
-    display: none;
-}
-body {
-  line-height: 1;
-}
-menu, ol, ul {
-  list-style: none;
-}
-blockquote, q {
-  quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-  content: '';
-  content: none;
-}
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-* {
-  box-sizing: border-box;
-}
-body {
-  font-weight: 300;
-  font-family: 'Source Sans Pro', sans-serif;
-  background-color:${(props) => props.theme.bgColor};
-  color:${(props) => props.theme.textColor};
-  line-height: 1.2;
-}
-a {
-  text-decoration:none;
-  color:inherit;
-}
+const queryClient = new QueryClient();
+
+const FloatingButton = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  right: 0;
+  top: 0;
+  margin: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  color: ${(props) => props.theme.bgColor};
+  background-color: ${(props) => props.theme.textColor};
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: ${(props) => (props.theme.name === "light") ? darkTheme.accentColor : lightTheme.accentColor};
+  }
 `;
 
+function isPreferringDarkMode() {
+  if (window.matchMedia("(prefers-color-scheme: dark)")?.matches) {
+    return true;
+  }
+
+  return false;
+}
+
 function App() {
-  const isDark = useRecoilValue(isDarkAtom);
+  const isInitPreferDarkMode = useMemo(isPreferringDarkMode, []);
+  const [theme, setTheme] = useState(isInitPreferDarkMode ? darkTheme : lightTheme);
+  const latestTheme = useLatest(theme);
+
+  const onClickDarkModeButton = () => {
+    setTheme((theme) => theme.name === "light" ? darkTheme : lightTheme);
+  };
+
+  useEffect(() => {
+    const listener = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        if (latestTheme.current !== darkTheme) {
+          setTheme(darkTheme);
+        }
+      } else {
+        if (latestTheme.current !== lightTheme) {
+          setTheme(lightTheme);
+        }
+      }
+    };
+
+    window.matchMedia("(prefers-color-scheme: dark)")?.addEventListener("change", listener);
+
+    return () => {
+      window.matchMedia("(prefers-color-scheme: dark)")?.removeEventListener("change", listener);
+    };
+  }, [latestTheme]);
   return (
     <>
-      <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
-        <GlobalStyle />
-        <Router />
-      </ThemeProvider>
-      {/* <ReactQueryDevtools initialIsOpen={true} /> */}
+      <QueryClientProvider client={queryClient}>
+        <HelmetProvider>
+          <ThemeProvider theme={theme}>
+        
+            <GlobalStyle/>
+          
+            <Container>
+              <Router/>
+            </Container>
+            <FloatingButton onClick={onClickDarkModeButton}>
+              <FontAwesomeIcon icon={theme.name === "light" ? faMoon : faLightbulb}/>
+            </FloatingButton>
+            
+            <ReactQueryDevtools/>
+          </ThemeProvider>
+        </HelmetProvider>
+      </QueryClientProvider>
     </>
   );
 }
